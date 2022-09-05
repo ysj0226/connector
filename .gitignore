@@ -1,0 +1,6 @@
+for_test/
+sasl-0.3.1-cp310-cp310-win_amd64.whl
+__pycache__/
+.idea/
+connect.db
+not_sqlalchemy/
