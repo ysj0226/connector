@@ -1,20 +1,8 @@
 from flask import Flask
 
-import bp_Athena
-import bp_Clickhouse
-import bp_Doris
-import bp_Impala
-import bp_Kylin
-import bp_Oracle
-import bp_Postgres
-import bp_Redshift
-import bp_SQLserver
-import bp_SparkSQL
-import bp_Sqlite
-import bp_Mysql
+from bp import bp_Athena, bp_Clickhouse, bp_Oracle, bp_Sqlite, bp_SQLserver, bp_Doris, bp_Redshift, bp_Mysql, bp_Impala, bp_Kylin, bp_SparkSQL, bp_Postgres
 from database import init_db
 from database import db_session
-from sqlalchemy import create_engine
 
 app = Flask(__name__)
 

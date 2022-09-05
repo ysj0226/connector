@@ -50,7 +50,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
 from sqlalchemy import create_engine
-from bp_Sqlite import getUri
+from bp.bp_Sqlite import getUri
 
 bp = Blueprint('kylin', __name__, url_prefix='/kylin')
 

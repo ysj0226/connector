@@ -1,14 +1,13 @@
 # 2022/8/28
 # 15:33
-#接口测试完成
 import json
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
 from sqlalchemy import create_engine
-from bp_Sqlite import getUri
+from bp.bp_Sqlite import getUri
 
-bp = Blueprint('clickhouse', __name__, url_prefix='/clickhouse')
+bp = Blueprint('impala', __name__, url_prefix='/impala')
 
 
 @bp.route('/database_list', methods=['POST'])
@@ -19,7 +18,6 @@ def get_databases():
         uri = getUri(connect_id)
         engine = create_engine(uri, echo=True)
         res = engine.execute('SHOW DATABASES').fetchall()
-        # [['INFORMATION_SCHEMA',], ('default',), ('fh_data',), ('information_schema',), ('system',)]
         database = []
         for row in res:
             for item in row:
@@ -35,7 +33,7 @@ def get_databases():
             'data': database
         }
 
-# 不用了先放着
+
 @bp.route('/get_metadata', methods=['POST'])
 def get_metadata():
     try:
@@ -109,7 +107,7 @@ def get_detail():
         meta = []
         i = 1
         for colData in metaRes:
-            scores = {"key": colData.name, "colIndex": i, "dataType": colData.type}
+            scores = {"key": colData.col_name, "colIndex": i, "dataType": colData.data_type}
             meta.append(scores)
             i += 1
     except Exception as e:
@@ -119,8 +117,8 @@ def get_detail():
         }
     else:
         return {
-            "success": True,
-            "data": {
+            'success': True,
+            'data': {
                 "columns": meta,
                 "rows": data
             }
@@ -150,8 +148,8 @@ def execute_sql():
         }
     else:
         return {
-            "success": True,
-            "data": {
+            'success': True,
+            'data': {
                 "rows": database
             }
         }

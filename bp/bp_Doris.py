@@ -1,14 +1,13 @@
 # 2022/8/28
 # 15:33
-# 测试完成
 import json
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
 from sqlalchemy import create_engine
-from bp_Sqlite import getUri
+from bp.bp_Sqlite import getUri
 
-bp = Blueprint('postgres', __name__, url_prefix='/postgres')
+bp = Blueprint('doris', __name__, url_prefix='/doris')
 
 
 @bp.route('/database_list', methods=['POST'])
@@ -18,7 +17,7 @@ def get_databases():
         connect_id = props['sourceId']
         uri = getUri(connect_id)
         engine = create_engine(uri, echo=True)
-        res = engine.execute('select datname from pg_database').fetchall()
+        res = engine.execute('SHOW DATABASES').fetchall()
         database = []
         for row in res:
             for item in row:
@@ -44,8 +43,7 @@ def get_metadata():
         connect_id = props['connect_id']
         uri = getUri(connect_id)
         engine = create_engine(uri, echo=True)
-        res = engine.execute(
-            'select column_name, data_type from information_schema.columns where table_schema= \'' + database + '\' and table_name= \'' + table + '\'').fetchall()
+        res = engine.execute('desc ' + database + '.' + table).fetchall()
         database = []
         for row in res:
             rows = []
@@ -72,8 +70,7 @@ def get_table_list():
         connect_id = props['sourceId']
         uri = getUri(connect_id)
         engine = create_engine(uri, echo=True)
-        res = engine.execute(
-            'select tablename from pg_tables where schemaname=\'' + database + '\'').fetchall()
+        res = engine.execute('SHOW TABLES FROM ' + database).fetchall()
         database = []
         for row in res:
             for item in row:
@@ -100,8 +97,7 @@ def get_detail():
         uri = getUri(connect_id)
         engine = create_engine(uri, echo=True)
         dataRes = engine.execute('select * from ' + database + '.' + table + ' limit 500').fetchall()
-        metaRes = engine.execute(
-            'select column_name, data_type from information_schema.columns where table_schema= \'' + database + '\' and table_name= \'' + table + '\'').fetchall()
+        metaRes = engine.execute('show full columns from ' + database + '.' + table).fetchall()
         data = []
         for row in dataRes:
             rows = []
@@ -111,7 +107,7 @@ def get_detail():
         meta = []
         i = 1
         for colData in metaRes:
-            scores = {"key": colData.column_name, "colIndex": i, "dataType": colData.data_type}
+            scores = {"key": colData.name, "colIndex": i, "dataType": colData.type}
             meta.append(scores)
             i += 1
     except Exception as e:
@@ -121,8 +117,8 @@ def get_detail():
         }
     else:
         return {
-            "success": True,
-            "data": {
+            'success': True,
+            'data': {
                 "columns": meta,
                 "rows": data
             }

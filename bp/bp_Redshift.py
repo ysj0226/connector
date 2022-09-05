@@ -1,15 +1,13 @@
 # 2022/8/28
 # 15:33
-# 无语了，这个athena在desc的时候竟然查询出来的是一个string类型的数据，最后fetchall的时候会出现列和结果数量不匹配的结果
-
 import json
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
 from sqlalchemy import create_engine
-from bp_Sqlite import getUri
+from bp.bp_Sqlite import getUri
 
-bp = Blueprint('athena', __name__, url_prefix='/athena')
+bp = Blueprint('redshift', __name__, url_prefix='/redshift')
 
 
 @bp.route('/database_list', methods=['POST'])
@@ -99,7 +97,7 @@ def get_detail():
         uri = getUri(connect_id)
         engine = create_engine(uri, echo=True)
         dataRes = engine.execute('select * from ' + database + '.' + table + ' limit 500').fetchall()
-        metaRes = engine.execute('select * from ' + database + '.' + table + ' limit 500').keys()
+        metaRes = engine.execute('desc ' + database + '.' + table).fetchall()
         data = []
         for row in dataRes:
             rows = []
@@ -109,7 +107,7 @@ def get_detail():
         meta = []
         i = 1
         for colData in metaRes:
-            scores = {"key": colData, "colIndex": i, "dataType": None}
+            scores = {"key": colData.name, "colIndex": i, "dataType": colData.type}
             meta.append(scores)
             i += 1
     except Exception as e:
@@ -119,8 +117,8 @@ def get_detail():
         }
     else:
         return {
-            'success': True,
-            'data': {
+            "success": True,
+            "data": {
                 "columns": meta,
                 "rows": data
             }
