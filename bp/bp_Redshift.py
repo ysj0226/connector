@@ -17,7 +17,7 @@ def get_databases():
         connect_id = props['sourceId']
         uri = getUri(connect_id)
         engine = create_engine(uri, echo=True)
-        res = engine.execute('SHOW DATABASES').fetchall()
+        res = engine.execute('select nspname from pg_namespace').fetchall()
         database = []
         for row in res:
             for item in row:
@@ -70,7 +70,7 @@ def get_table_list():
         connect_id = props['sourceId']
         uri = getUri(connect_id)
         engine = create_engine(uri, echo=True)
-        res = engine.execute('SHOW TABLES FROM ' + database).fetchall()
+        res = engine.execute('''select distinct(tablename) from pg_table_def where schemaname = '{0}' '''.format(database)).fetchall()
         database = []
         for row in res:
             for item in row:
@@ -97,7 +97,12 @@ def get_detail():
         uri = getUri(connect_id)
         engine = create_engine(uri, echo=True)
         dataRes = engine.execute('select * from ' + database + '.' + table + ' limit 500').fetchall()
-        metaRes = engine.execute('desc ' + database + '.' + table).fetchall()
+        metaRes = engine.execute('''
+            SELECT *
+            FROM pg_table_def
+            WHERE tablename = '{0}'
+            AND schemaname = '{1}'
+        '''.format(table, database)).fetchall()
         data = []
         for row in dataRes:
             rows = []
@@ -107,7 +112,7 @@ def get_detail():
         meta = []
         i = 1
         for colData in metaRes:
-            scores = {"key": colData.name, "colIndex": i, "dataType": colData.type}
+            scores = {"key": colData.column, "colIndex": i, "dataType": colData.type}
             meta.append(scores)
             i += 1
     except Exception as e:
