@@ -92,7 +92,7 @@ def get_metadata():
         }
 
 
-# * -> table_name, 不确定是不是对的
+# * -> tname
 @bp.route('/table_list', methods=['POST'])
 def get_table_list():
     try:
@@ -101,7 +101,7 @@ def get_table_list():
         connect_id = props['sourceId']
         uri = getUri(connect_id)
         engine = create_engine(uri, echo=True)
-        res = engine.execute('select table_name from tab').fetchall()
+        res = engine.execute('select tname from tab').fetchall()
         database = []
         for row in res:
             for item in row:
@@ -128,8 +128,7 @@ def get_detail():
         uri = getUri(connect_id)
         engine = create_engine(uri, echo=True)
         dataRes = engine.execute('select * from ' + table + ' where rownum <= 500').fetchall()
-        metaRes = engine.execute(
-            '''
+        cmd = '''
                 select t.table_name,
                        t.column_name as column_name,
                        t.data_type as data_type,
@@ -143,16 +142,19 @@ def get_detail():
                      (select m.column_name
                       from user_constraints s,
                            user_cons_columns m
-                      where lower(m.table_name) = '{0}'
+                      where m.table_name = '{0}'
                         and m.table_name = s.table_name
                         and m.constraint_name = s.constraint_name
                         and s.constraint_type = 'P') m
-                WHERE lower(t.table_name) = '{1}'
+                WHERE t.table_name = '{1}'
                   and c.table_name = t.table_name
                   and c.column_name = t.column_name
                   and t.hidden_column = 'NO'
                 order by t.column_id
             '''.format(table, table)
+        print('>>>', [cmd])
+        metaRes = engine.execute(
+            cmd
         ).fetchall()
         data = []
         for row in dataRes:

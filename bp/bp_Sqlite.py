@@ -20,6 +20,7 @@ def upsert_url():
         uri = props['uri']
         source_type = props['sourceType']
 
+
         # if getUri(connect_id):
         #     Connection.query.filter(Connection.connect_id == connect_id).delete()
         #     db_session.commit()
